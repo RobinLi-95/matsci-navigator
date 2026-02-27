@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Eye, Activity, ChevronDown, Sparkles, Atom, FlaskConical, Table2, AlertCircle } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import StructurePanel from "./StructurePanel";
 import RunMonitorPanel from "./RunMonitorPanel";
 
@@ -134,13 +136,47 @@ const ChatArea = () => {
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[85%] text-sm leading-relaxed whitespace-pre-wrap ${
+                className={`max-w-[85%] text-sm leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-primary text-primary-foreground px-4 py-3 rounded-2xl rounded-br-md shadow-[0_4px_20px_hsl(var(--primary)/0.25)]"
+                    ? "whitespace-pre-wrap bg-primary text-primary-foreground px-4 py-3 rounded-2xl rounded-br-md shadow-[0_4px_20px_hsl(var(--primary)/0.25)]"
                     : "bg-card border border-border px-5 py-4 rounded-2xl rounded-bl-md glow-border"
                 }`}
               >
-                {msg.content}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto my-2">
+                        <table className="w-full text-xs border-collapse">{children}</table>
+                      </div>
+                    ),
+                    thead: ({ children }) => (
+                      <thead className="border-b border-border">{children}</thead>
+                    ),
+                    th: ({ children }) => (
+                      <th className="text-left px-3 py-1.5 font-semibold text-muted-foreground">{children}</th>
+                    ),
+                    td: ({ children }) => (
+                      <td className="px-3 py-1.5 border-t border-border/50">{children}</td>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-bold text-primary">{children}</strong>
+                    ),
+                    code: ({ children, className }) => {
+                      const isInline = !className;
+                      return isInline ? (
+                        <code className="bg-muted/60 text-primary px-1.5 py-0.5 rounded text-xs font-mono-code">{children}</code>
+                      ) : (
+                        <code className={`block bg-muted/40 p-3 rounded-lg text-xs font-mono-code overflow-x-auto my-2 ${className}`}>{children}</code>
+                      );
+                    },
+                    ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-1">{children}</ol>,
+                    p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
               </div>
             </motion.div>
           ))}
